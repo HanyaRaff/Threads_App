@@ -9,7 +9,7 @@ export default async function Home() {
   const result = await fetchPosts(1, 30)
   const user = await currentUser()
 
-  if (!user) return null;
+  if (!user) redirect("/sign-in");
 
   const userInfo = await fetchUser(user.id);
 
