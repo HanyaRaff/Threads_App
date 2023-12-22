@@ -1,4 +1,5 @@
 import ThreadCard from "@/components/card/ThreadCard";
+import { fetchCommunityDetails } from "@/lib/actions/community.actions";
 import { fetchPosts } from "@/lib/actions/thread.action";
 import { fetchUser } from "@/lib/actions/user.action";
 import { UserButton, currentUser } from "@clerk/nextjs";
@@ -14,6 +15,7 @@ export default async function Home() {
   const userInfo = await fetchUser(user.id);
 
   if (!userInfo?.onboarded) redirect("/onboarding");
+  
   
   return (
     <>

@@ -4,7 +4,7 @@ import { FilterQuery, SortOrder } from "mongoose";
 
 import Community from "../models/community.model";
 import Thread from "../models/thread.model";
-import User from "../models/user.model";
+import Users from "../models/user.model";
 
 import { connectToDB } from "../mongoose";
 
@@ -20,10 +20,10 @@ export async function createCommunity(
     connectToDB();
 
     // Find the user with the provided unique id
-    const user = await User.findOne({ id: createdById });
+    const user = await Users.findOne({ id: createdById });
 
     if (!user) {
-      throw new Error("User not found"); // Handle the case if the user with the id is not found
+      throw new Error("Users not found"); // Handle the case if the user with the id is not found
     }
 
     const newCommunity = new Community({
@@ -37,7 +37,7 @@ export async function createCommunity(
 
     const createdCommunity = await newCommunity.save();
 
-    // Update User model
+    // Update Users model
     user.communities.push(createdCommunity._id);
     await user.save();
 
@@ -57,7 +57,7 @@ export async function fetchCommunityDetails(id: string) {
       "createdBy",
       {
         path: "members",
-        model: User,
+        model: Users,
         select: "name username image _id id",
       },
     ]);
@@ -80,16 +80,16 @@ export async function fetchCommunityPosts(id: string) {
       populate: [
         {
           path: "author",
-          model: User,
-          select: "name image id", // Select the "name" and "_id" fields from the "User" model
+          model: Users,
+          select: "name image id", // Select the "name" and "_id" fields from the "Users" model
         },
         {
           path: "children",
           model: Thread,
           populate: {
             path: "author",
-            model: User,
-            select: "image _id", // Select the "name" and "_id" fields from the "User" model
+            model: Users,
+            select: "image _id", // Select the "name" and "_id" fields from the "Users" model
           },
         },
       ],
@@ -174,15 +174,15 @@ export async function addMemberToCommunity(
     }
 
     // Find the user by their unique id
-    const user = await User.findOne({ id: memberId });
+    const user = await Users.findOne({ id: memberId });
 
     if (!user) {
-      throw new Error("User not found");
+      throw new Error("Users not found");
     }
 
     // Check if the user is already a member of the community
     if (community.members.includes(user._id)) {
-      throw new Error("User is already a member of the community");
+      throw new Error("Users is already a member of the community");
     }
 
     // Add the user's _id to the members array in the community
@@ -208,14 +208,14 @@ export async function removeUserFromCommunity(
   try {
     connectToDB();
 
-    const userIdObject = await User.findOne({ id: userId }, { _id: 1 });
+    const userIdObject = await Users.findOne({ id: userId }, { _id: 1 });
     const communityIdObject = await Community.findOne(
       { id: communityId },
       { _id: 1 }
     );
 
     if (!userIdObject) {
-      throw new Error("User not found");
+      throw new Error("Users not found");
     }
 
     if (!communityIdObject) {
@@ -229,7 +229,7 @@ export async function removeUserFromCommunity(
     );
 
     // Remove the community's _id from the communities array in the user
-    await User.updateOne(
+    await Users.updateOne(
       { _id: userIdObject._id },
       { $pull: { communities: communityIdObject._id } }
     );
@@ -286,7 +286,7 @@ export async function deleteCommunity(communityId: string) {
     await Thread.deleteMany({ community: communityId });
 
     // Find all users who are part of the community
-    const communityUsers = await User.find({ communities: communityId });
+    const communityUsers = await Users.find({ communities: communityId });
 
     // Remove the community from the 'communities' array for each user
     const updateUserPromises = communityUsers.map((user) => {
